@@ -1,8 +1,12 @@
 import json
 import os
+import os.path
+import smtplib
 import sys
 from typing import Dict, List
 
+import keyring
+import pandas as pd
 from boxsdk import Client, JWTAuth
 from boxsdk.object.folder import Folder
 from loguru import logger
@@ -171,3 +175,84 @@ def upload_file_to_box(
         sys.exit(1)
 
     return None
+
+
+def loguru(logger) -> None:
+
+    """This is the logging function.Call this script to log
+    each script on the run folder and the log file will be
+    created in the same folder.
+
+    Returns:
+        _type_: _description_
+    """
+
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # get the current file name
+    script_name = os.path.basename(sys.argv[0])
+    # remove the file extension from the file name
+    script_name = os.path.splitext(script_name)[0]
+
+    fh = script_name + ".log"
+
+    # add file handler
+    logger.add(fh)
+
+    logger.add(
+        sys.stderr,
+        level="INFO",
+        format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    )
+
+    # add a file handler
+
+    return logger
+
+
+@logger.catch
+def send_email(subject, recipients, text):
+    """This function sends an email to the recipients.
+
+    Args:
+        subject (_type_): _description_
+        recipients (_type_): _description_
+        text (_type_): _description_
+
+    Returns:
+        None
+    """
+
+    # hard coded email credentials
+    # NOTE: Move them to keyring or a config file
+    USERNAME = "<ENTER USERNAME>"
+    PASSWORD = keyring.get_password("email", "password")
+    HOST = "email-smtp.us-east-1.amazonaws.com"
+    FROM = "<ENTER FROM EMAIL>"
+
+    BODY = "\r\n".join(
+        (
+            f"From: {FROM}",
+            f"To: {recipients}",
+            f"Subject: {subject}",
+            "",
+            f"{text}",
+        )
+    )
+
+    try:
+        server = smtplib.SMTP(HOST, 587)
+        # start SSL for security
+
+        # set context to use SSL
+        context = ssl.create_default_context()
+
+        server.starttls(context=context)  # secure the connection with TLS
+
+        # pass credentials
+        server.login(USERNAME, PASSWORD)
+        server.sendmail(FROM, [recipients], BODY)
+        server.quit()
+        logger.info("Success: Email sent!")
+    except Exception as e:
+        logger.error(e)
+        sys.exit(1)

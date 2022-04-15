@@ -3,10 +3,9 @@ import os
 import sys
 from typing import Dict, List
 
-from box_utils import download_file_from_box, get_authenticated_client
 from loguru import logger
 
-from helper_data import loguru
+from box_utils import download_file_from_box, get_authenticated_client, loguru
 
 # initialize the logger
 logger = loguru(logger)
@@ -17,12 +16,13 @@ logger.info(f"Starting {script_name} ")
 
 # path to box config json file
 pathToBoxConfigJson = (
-    r"/Users/kore/Desktop/WORK/box_blog/config/box_config.json"
+    r"/Users/kore/Desktop/WORK/eli5_BOX_APIs/config/box_config.json"
 )
 # path to box sdk config json file
 pathToBoxSdkConfigJson = (
-    r"/Users/kore/Desktop/WORK/box_blog/config/box_jwt_config.json"
+    r"/Users/kore/Desktop/WORK/eli5_BOX_APIs/config/box_jwt_config.json"
 )
+
 
 # open the config file
 with open(pathToBoxConfigJson, "r") as f:
